@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindent Bele Űrlap - Validációval</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
+        h1 { text-align: center; color: #333; }
+        p.info { font-size: 0.9em; color: #666; text-align: center; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        
+        /* Input stílusok */
+        input[type="text"], input[type="email"], input[type="password"], 
+        input[type="number"], input[type="date"], select, textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Hogy a padding ne növelje a szélességet */
+            font-size: 16px;
+        }
+
+        /* Checkbox és Radio stílusok */
+        .radio-group label, .checkbox-group label { display: inline; font-weight: normal; margin-right: 15px; }
+        input[type="radio"], input[type="checkbox"] { transform: scale(1.2); margin-right: 5px; }
+
+        /* Gomb stílus */
+        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.3s; }
+        button:hover { background-color: #218838; }
+
+        /* Hibaüzenetek */
+        .error-msg { color: #dc3545; font-size: 0.85em; margin-top: 5px; height: 1.2em; }
+        
+        /* Sikeres validáció jelzésére (opcionális) */
+        input.input-error { border-color: #dc3545; background-color: #fff8f8; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Regisztrációs Űrlap</h1>
+    <p class="info">Töltsd ki az adatokat! A "Küldés" gomb után a httpbin.org jeleníti meg a szerverre érkezett adatokat.</p>
+
+    <!-- 
+        enctype="multipart/form-data": Ez kötelező, ha fájlt is küldünk!
+        A httpbin a fájlokat a "files", az adatokat a "form" részben mutatja majd.
+    -->
+    <form id="fullForm" action="https://httpbin.org/post" method="POST" enctype="multipart/form-data">
+        
+        <!-- REJTETT MEZŐ (Pl. felhasználó azonosító) -->
+        <input type="hidden" name="user_id" value="UID_998877">
+
+        <!-- 1. SZÖVEG -->
+        <div class="form-group">
+            <label for="fullname">Teljes név:</label>
+            <input type="text" id="fullname" name="fullname" placeholder="Pl. Kiss Anna">
+            <div id="error-name" class="error-msg"></div>
+        </div>
+
+        <!-- 2. EMAIL -->
+        <div class="form-group">
+            <label for="email">Email cím:</label>
+            <input type="email" id="email" name="email" placeholder="pelda@mail.com">
+            <div id="error-email" class="error-msg"></div>
+        </div>
+
+        <!-- 3. JELSZÓ -->
+        <div class="form-group">
+            <label for="password">Jelszó (min. 6 karakter):</label>
+            <input type="password" id="password" name="password">
+            <div id="error-pass" class="error-msg"></div>
+        </div>
+
+        <!-- 4. DÁTUM és 5. SZÁM -->
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="birthdate">Születési dátum:</label>
+                <input type="date" id="birthdate" name="birthdate">
+                <div id="error-date" class="error-msg"></div>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label for="age">Életkor (18+):</label>
+                <input type="number" id="age" name="age" min="1">
+                <div id="error-age" class="error-msg"></div>
+            </div>
+        </div>
+
+        <!-- 6. RÁDIÓ GOMBOK (Csak egy választható) -->
+        <div class="form-group radio-group">
+            <label style="display:block; margin-bottom:10px;">Nem:</label>
+            <input type="radio" id="female" name="gender" value="no" checked>
+            <label for="female">Nő</label>
+            
+            <input type="radio" id="male" name="gender" value="ferfi">
+            <label for="male">Férfi</label>
+
+            <input type="radio" id="other" name="gender" value="egyeb">
+            <label for="other">Egyéb</label>
+        </div>
+
+        <!-- 7. SELECT (Legördülő) -->
+        <div class="form-group">
+            <label for="position">Munkakör:</label>
+            <select id="position" name="job_position">
+                <option value="">-- Válassz egyet --</option>
+                <option value="developer">Fejlesztő</option>
+                <option value="designer">Designer</option>
+                <option value="manager">Menedzser</option>
+            </select>
+            <div id="error-job" class="error-msg"></div>
+        </div>
+
+        <!-- 8. FÁJL FELTÖLTÉS -->
+        <div class="form-group">
+            <label for="profile_pic">Profilkép feltöltése:</label>
+            <input type="file" id="profile_pic" name="profile_pic" accept="image/*">
+        </div>
+
+        <!-- 9. TEXTAREA (Hosszú szöveg) -->
+        <div class="form-group">
+            <label for="bio">Rövid bemutatkozás:</label>
+            <textarea id="bio" name="bio" rows="4" placeholder="Írj magadról pár mondatot..."></textarea>
+        </div>
+
+        <!-- 10. CHECKBOX (Jelölőnégyzet) -->
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="terms" name="terms_accepted">
+            <label for="terms">Elfogadom az Adatvédelmi Nyilatkozatot *</label>
+            <div id="error-terms" class="error-msg"></div>
+        </div>
+
+        <button type="submit">Regisztráció Küldése</button>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById('fullForm');
+    
+    // Elemek referenciái
+    const nameInput = document.getElementById('fullname');
+    const passInput = document.getElementById('password');
+    const ageInput = document.getElementById('age');
+    const jobInput = document.getElementById('position');
+    const termsInput = document.getElementById('terms'); // Checkbox
+
+    // Hibaüzenet tárolók
+    const errorName = document.getElementById('error-name');
+    const errorPass = document.getElementById('error-pass');
+    const errorAge = document.getElementById('error-age');
+    const errorJob = document.getElementById('error-job');
+    const errorTerms = document.getElementById('error-terms');
+
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+
+        // 1. Töröljük az előző hibaüzeneteket és stílusokat
+        const errors = document.querySelectorAll('.error-msg');
+        errors.forEach(el => el.textContent = '');
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(el => el.classList.remove('input-error'));
+
+        // --- VALIDÁCIÓK ---
+
+        // Név ellenőrzése (nem lehet üres)
+        if (nameInput.value.trim() === "") {
+            errorName.textContent = "A név megadása kötelező!";
+            nameInput.classList.add('input-error');
+            isValid = false;
+        }
+
+        // Jelszó hossza (min 6)
+        if (passInput.value.length < 6) {
+            errorPass.textContent = "A jelszó túl rövid (min. 6 karakter).";
+            passInput.classList.add('input-error');
+            isValid = false;
+        }
+
+        // Életkor vizsgálat (számmá alakítás és értékvizsgálat)
+        // Megj: a HTML type="number" már korlátoz, de JS-ben is érdemes csekkolni
+        if (Number(ageInput.value) < 18) {
+            errorAge.textContent = "Csak 18 éven felüliek regisztrálhatnak.";
+            ageInput.classList.add('input-error');
+            isValid = false;
+        }
+
+        // Select ellenőrzése (választott-e valamit?)
+        if (jobInput.value === "") {
+            errorJob.textContent = "Kérlek válassz munkakört!";
+            jobInput.classList.add('input-error');
+            isValid = false;
+        }
+
+        // Checkbox ellenőrzése (kötelező pipa) - .checked tulajdonság!
+        if (!termsInput.checked) {
+            errorTerms.textContent = "A regisztrációhoz el kell fogadnod a feltételeket.";
+            isValid = false;
+        }
+
+        // --- DÖNTÉS ---
+        
+        if (!isValid) {
+            event.preventDefault(); // Megállítjuk a küldést, ha hiba van
+            console.log("Hiba az űrlapon!");
+        } else {
+            // Ha minden OK, engedjük tovább a httpbin-re
+            console.log("Minden adat rendben, küldés...");
+        }
+    });
+</script>
+
+</body>
+</html>
